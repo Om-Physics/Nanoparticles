@@ -55,4 +55,4 @@ Research interests: Biophysics, Nanomedicine, Computational Physics
 
 ## License
 
-This repository is released under the GPL-3.0 License.
+This repository is released under the MIT License.
