@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Gold Nanoparticle Drug Delivery — Interactive Simulation</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Segoe UI',sans-serif;background:#1a1a2e;color:#eee;min-height:100vh}
+
+  /* ── header ── */
+  header{background:linear-gradient(135deg,#0f3460,#16213e);
+    padding:22px 30px;text-align:center;border-bottom:2px solid #e94560}
+  header h1{font-size:22px;color:#ffd700;letter-spacing:.5px}
+  header p{font-size:13px;color:#aaa;margin-top:5px}
+
+  /* ── layout ── */
+  .wrapper{display:grid;grid-template-columns:1fr 320px;gap:0;height:calc(100vh - 90px)}
+
+  /* ── canvas area ── */
+  .canvas-area{position:relative;background:#0d1117}
+  canvas{display:block;width:100%;height:100%}
+
+  /* ── phase badge ── */
+  .phase-badge{position:absolute;top:14px;left:14px;background:rgba(0,0,0,.75);
+    border:1px solid #e94560;border-radius:8px;padding:10px 16px;min-width:220px;z-index:10}
+  .phase-badge .label{font-size:10px;color:#aaa;text-transform:uppercase;letter-spacing:1px}
+  .phase-badge .name{font-size:14px;color:#ffd700;font-weight:600;margin:3px 0}
+  .progress-track{height:4px;background:#333;border-radius:2px;margin-top:6px}
+  .progress-fill{height:100%;background:linear-gradient(90deg,#e94560,#ffd700);
+    border-radius:2px;transition:width .4s}
+
+  /* ── sidebar ── */
+  .sidebar{background:#16213e;border-left:1px solid #0f3460;
+    display:flex;flex-direction:column;overflow:hidden}
+
+  .controls{padding:16px;border-bottom:1px solid #0f3460}
+  .controls h2{font-size:12px;color:#aaa;letter-spacing:1px;
+    text-transform:uppercase;margin-bottom:10px}
+  .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+  .btn{padding:7px 14px;border:none;border-radius:6px;
+    font-size:12px;font-weight:600;cursor:pointer;transition:all .2s}
+  .btn-primary{background:#e94560;color:#fff}
+  .btn-primary:hover{background:#c73652}
+  .btn-secondary{background:#0f3460;color:#ccc;border:1px solid #1a4a7a}
+  .btn-secondary:hover{background:#1a4a7a}
+  .btn-small{padding:5px 10px;font-size:11px}
+  .speed-row{display:flex;gap:6px;align-items:center}
+  .speed-row span{font-size:11px;color:#aaa}
+
+  /* ── metrics ── */
+  .metrics{padding:14px;border-bottom:1px solid #0f3460}
+  .metrics h2{font-size:12px;color:#aaa;text-transform:uppercase;
+    letter-spacing:1px;margin-bottom:10px}
+  .metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .metric-card{background:#0d1117;border-radius:6px;padding:10px;text-align:center}
+  .metric-card .val{font-size:20px;font-weight:700;color:#ffd700}
+  .metric-card .lbl{font-size:10px;color:#888;margin-top:2px}
+
+  /* ── phase list ── */
+  .phase-list{padding:14px;flex:1;overflow-y:auto}
+  .phase-list h2{font-size:12px;color:#aaa;text-transform:uppercase;
+    letter-spacing:1px;margin-bottom:10px}
+  .phase-item{display:flex;align-items:flex-start;gap:10px;
+    padding:8px;border-radius:6px;margin-bottom:6px;transition:background .3s}
+  .phase-item.active{background:rgba(233,69,96,.15);
+    border-left:3px solid #e94560}
+  .phase-item.done{opacity:.55}
+  .phase-dot{width:22px;height:22px;border-radius:50%;background:#0f3460;
+    border:2px solid #1a4a7a;display:flex;align-items:center;justify-content:center;
+    font-size:10px;font-weight:700;flex-shrink:0;color:#aaa}
+  .phase-item.active .phase-dot{background:#e94560;border-color:#e94560;color:#fff}
+  .phase-item.done .phase-dot{background:#2ecc71;border-color:#2ecc71;color:#fff}
+  .phase-text .title{font-size:12px;font-weight:600;color:#ddd}
+  .phase-text .desc{font-size:11px;color:#888;margin-top:2px;line-height:1.4}
+
+  /* ── legend ── */
+  .legend{padding:12px 14px;border-top:1px solid #0f3460}
+  .legend h2{font-size:11px;color:#aaa;text-transform:uppercase;
+    letter-spacing:1px;margin-bottom:8px}
+  .legend-items{display:flex;flex-wrap:wrap;gap:6px}
+  .leg{display:flex;align-items:center;gap:5px;font-size:10px;color:#bbb}
+  .leg-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🔬 Gold Nanoparticle Drug Delivery — Interactive Mechanism Simulation</h1>
+  <p>Computational visualisation of AuNP-mediated doxorubicin delivery in A549 lung adenocarcinoma cells
+     &nbsp;|&nbsp; Om Jha, St. Xavier's College Kathmandu, 2026</p>
+</header>
+
+<div class="wrapper">
+  <!-- canvas -->
+  <div class="canvas-area">
+    <div class="phase-badge">
+      <div class="label">Current Phase</div>
+      <div class="name" id="phaseName">Awaiting simulation start</div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+      </div>
+    </div>
+    <canvas id="sim"></canvas>
+  </div>
+
+  <!-- sidebar -->
+  <div class="sidebar">
+    <!-- controls -->
+    <div class="controls">
+      <h2>Simulation Controls</h2>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="startSim()">▶ Start</button>
+        <button class="btn btn-secondary" onclick="pauseSim()">⏸ Pause</button>
+        <button class="btn btn-secondary" onclick="resetSim()">↺ Reset</button>
+        <button class="btn btn-secondary btn-small" onclick="toggleLabels()">🏷 Labels</button>
+      </div>
+      <div class="speed-row">
+        <span>Speed:</span>
+        <button class="btn btn-secondary btn-small" onclick="setSpeed(0.5)">0.5×</button>
+        <button class="btn btn-secondary btn-small" onclick="setSpeed(1)">1×</button>
+        <button class="btn btn-secondary btn-small" onclick="setSpeed(2)">2×</button>
+        <button class="btn btn-secondary btn-small" onclick="setSpeed(3)">3×</button>
+      </div>
+    </div>
+
+    <!-- live metrics -->
+    <div class="metrics">
+      <h2>Live Metrics</h2>
+      <div class="metric-grid">
+        <div class="metric-card">
+          <div class="val" id="mNP">0</div>
+          <div class="lbl">AuNPs in Tumour</div>
+        </div>
+        <div class="metric-card">
+          <div class="val" id="mPH">7.4</div>
+          <div class="lbl">Endosomal pH</div>
+        </div>
+        <div class="metric-card">
+          <div class="val" id="mDrug">0%</div>
+          <div class="lbl">Drug Released</div>
+        </div>
+        <div class="metric-card">
+          <div class="val" id="mViab">100%</div>
+          <div class="lbl">Cell Viability</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- phase list -->
+    <div class="phase-list">
+      <h2>Mechanism Phases</h2>
+      <div id="phaseList"></div>
+    </div>
+
+    <!-- legend -->
+    <div class="legend">
+      <h2>Legend</h2>
+      <div class="legend-items">
+        <div class="leg"><div class="leg-dot" style="background:#FFD700;border:1px solid #B8860B"></div>AuNP Core</div>
+        <div class="leg"><div class="leg-dot" style="background:#4169E1;opacity:.6"></div>PEG Corona</div>
+        <div class="leg"><div class="leg-dot" style="background:#32CD32"></div>Cetuximab (Ab)</div>
+        <div class="leg"><div class="leg-dot" style="background:#FF1493"></div>Doxorubicin</div>
+        <div class="leg"><div class="leg-dot" style="background:#FF6347;opacity:.7"></div>Cancer Cell</div>
+        <div class="leg"><div class="leg-dot" style="background:#8B4513"></div>EGFR Receptor</div>
+        <div class="leg"><div class="leg-dot" style="background:#9370DB;opacity:.7"></div>Endosome</div>
+        <div class="leg"><div class="leg-dot" style="background:#4682B4"></div>Nucleus</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// CONSTANTS AND STATE
+// ═══════════════════════════════════════════════════════════════════════════
+
+const PHASES = [
+  {title:"Blood Circulation",       desc:"PEG-AuNPs undergo Brownian motion in bloodstream; t½ = 58 h"},
+  {title:"EPR Accumulation",        desc:"Fenestrated tumour vasculature (100–600 nm gaps) allows extravasation"},
+  {title:"EGFR Recognition",        desc:"Cetuximab binds EGFR on A549 cells; Kd ≈ 10⁻¹⁰ M"},
+  {title:"Receptor-Mediated Endocytosis", desc:"Clathrin-coated pit formation; internalisation over 2–4 h"},
+  {title:"Endosomal Acidification",  desc:"pH declines 7.4 → 5.0; lysosomal maturation"},
+  {title:"pH-Responsive Drug Release",desc:"Hydrazone bond cleavage; 4× selectivity vs pH 7.4"},
+  {title:"Nuclear Translocation",   desc:"Doxorubicin diffuses to nucleus; topoisomerase II inhibition"},
+  {title:"Apoptosis Induction",     desc:"DNA damage triggers p53 pathway; caspase cascade; cell death"},
+];
+
+let running = false, speed = 1, showLabels = true;
+let frame = 0, phase = 0;
+let particles = [], cells = [], drugDots = [];
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CANVAS SETUP — responsive sizing
+// ═══════════════════════════════════════════════════════════════════════════
+
+const canvas = document.getElementById("sim");
+const ctx    = canvas.getContext("2d");
+
+function resizeCanvas(){
+  const area  = canvas.parentElement;
+  canvas.width  = area.clientWidth;
+  canvas.height = area.clientHeight;
+}
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+
+const W = () => canvas.width;
+const H = () => canvas.height;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BUILD PHASE LIST UI
+// ═══════════════════════════════════════════════════════════════════════════
+
+(function buildPhaseList(){
+  const el = document.getElementById("phaseList");
+  el.innerHTML = PHASES.map((p,i)=>`
+    <div class="phase-item" id="pi${i}">
+      <div class="phase-dot" id="pd${i}">${i+1}</div>
+      <div class="phase-text">
+        <div class="title">${p.title}</div>
+        <div class="desc">${p.desc}</div>
+      </div>
+    </div>`).join("");
+})();
+
+function updatePhaseUI(){
+  PHASES.forEach((_,i)=>{
+    const item = document.getElementById(`pi${i}`);
+    const dot  = document.getElementById(`pd${i}`);
+    item.classList.remove("active","done");
+    if(i === phase) item.classList.add("active");
+    else if(i < phase){ item.classList.add("done"); dot.textContent = "✓"; }
+    else dot.textContent = i+1;
+  });
+  document.getElementById("phaseName").textContent = PHASES[phase].title;
+  document.getElementById("progressFill").style.width = `${((phase+1)/PHASES.length)*100}%`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PARTICLE CLASS — gold nanoparticle
+// ═══════════════════════════════════════════════════════════════════════════
+
+class Particle {
+  constructor(){
+    this.x  = Math.random() * W();
+    this.y  = Math.random() * H() * 0.38;
+    this.vx = (Math.random()-0.5)*1.8;
+    this.vy = (Math.random()-0.5)*1.8;
+    this.r  = 8;
+    this.angle = Math.random()*Math.PI*2;
+    this.state = "circulating"; // circulating | targeting | bound | internalized
+    this.tx = null; this.ty = null;
+    this.cell = null;
+    this.blinkT = 0;
+  }
+
+  update(){
+    const s = speed;
+    this.angle += 0.04 * s;
+    if(this.state === "circulating"){
+      this.x += this.vx * s;
+      this.y += this.vy * s;
+      if(Math.random() < 0.015){ this.vx += (Math.random()-0.5)*0.4; this.vy += (Math.random()-0.5)*0.4; }
+      this.vx = Math.max(-3, Math.min(3, this.vx));
+      this.vy = Math.max(-3, Math.min(3, this.vy));
+      if(this.x < 8 || this.x > W()-8) this.vx *= -1;
+      if(this.y < 8 || this.y > H()*0.4) this.vy *= -1;
+    } else if(this.state === "targeting" && this.tx !== null){
+      const dx = this.tx - this.x, dy = this.ty - this.y;
+      const d  = Math.hypot(dx, dy);
+      if(d > 6){ this.x += (dx/d)*2.2*s; this.y += (dy/d)*2.2*s; }
+      else      this.state = "bound";
+    }
+  }
+
+  draw(){
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.angle);
+
+    // PEG corona
+    ctx.beginPath();
+    ctx.arc(0,0,this.r+5,0,Math.PI*2);
+    ctx.fillStyle = "rgba(65,105,225,0.22)";
+    ctx.fill();
+
+    // gold core
+    const g = ctx.createRadialGradient(0,0,0,0,0,this.r);
+    g.addColorStop(0,"#FFE066");
+    g.addColorStop(0.6,"#FFD700");
+    g.addColorStop(1,"#B8860B");
+    ctx.beginPath();
+    ctx.arc(0,0,this.r,0,Math.PI*2);
+    ctx.fillStyle = g;
+    ctx.fill();
+    ctx.strokeStyle = "#8B6914"; ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // antibody dots
+    if(this.state !== "internalized"){
+      for(let i=0;i<8;i++){
+        const a = (Math.PI*2/8)*i;
+        ctx.beginPath();
+        ctx.arc(Math.cos(a)*(this.r+2), Math.sin(a)*(this.r+2), 2.2, 0, Math.PI*2);
+        ctx.fillStyle = "#32CD32";
+        ctx.fill();
+      }
+    }
+
+    // dox molecules
+    for(let i=0;i<6;i++){
+      const a = (Math.PI*2/6)*i;
+      ctx.beginPath();
+      ctx.arc(Math.cos(a)*5.5, Math.sin(a)*5.5, 1.8, 0, Math.PI*2);
+      ctx.fillStyle = "#FF1493";
+      ctx.fill();
+    }
+
+    if(showLabels && this.state==="circulating"){
+      ctx.fillStyle="rgba(255,215,0,.85)";
+      ctx.font="bold 9px sans-serif";
+      ctx.textAlign="center";
+      ctx.fillText("AuNP",0,this.r+14);
+    }
+    ctx.restore();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CANCER CELL CLASS
+// ═══════════════════════════════════════════════════════════════════════════
+
+class CancerCell {
+  constructor(x,y,r){
+    this.x=x; this.y=y; this.r=r;
+    this.nr  = r*0.32;           // nucleus radius
+    this.pH  = 7.4;
+    this.viability = 100;
+    this.endosomes = [];
+    this.drugInNucleus = 0;
+    this.apoptotic = false;
+    this.receptors = Array.from({length:28},(_,i)=>({
+      angle:(Math.PI*2/28)*i, bound:false, gone:false
+    }));
+    this.bounceT = 0;
+  }
+
+  bindReceptor(){
+    const free = this.receptors.find(r=>!r.bound&&!r.gone);
+    if(free){ free.bound=true; return true; } return false;
+  }
+
+  addEndosome(){
+    const a = Math.random()*Math.PI*2;
+    const d = this.r*0.55;
+    this.endosomes.push({x:this.x+Math.cos(a)*d, y:this.y+Math.sin(a)*d,
+      r:14, pH:7.4, released:false, dox:[]});
+  }
+
+  update(){
+    // acidify endosomes
+    this.endosomes.forEach(e=>{
+      if(!e.released){
+        e.pH = Math.max(5.0, e.pH - 0.008*speed);
+        if(e.pH <= 5.2 && !e.released){
+          e.released = true;
+          for(let i=0;i<12;i++) e.dox.push({
+            a: Math.random()*Math.PI*2,
+            r: e.r+4,
+            vr: Math.random()*0.8+0.3,
+            va: (Math.random()-0.5)*0.06
+          });
+        }
+      }
+      // drift dox towards nucleus
+      e.dox.forEach(d=>{
+        d.r += d.vr*speed;
+        d.a += d.va*speed;
+        if(d.r > this.nr*0.8) d.vr = Math.max(-0.5, d.vr-0.05);
+      });
+    });
+
+    // track drug in nucleus
+    const released = this.endosomes.filter(e=>e.released).length;
+    this.drugInNucleus = Math.min(100, released*12);
+
+    if(this.apoptotic){
+      this.viability = Math.max(0, this.viability - 0.18*speed);
+    }
+
+    // mark apoptotic when enough drug reaches nucleus
+    if(this.drugInNucleus > 30 && !this.apoptotic) this.apoptotic = true;
+  }
+
+  draw(){
+    const t = frame*0.018;
+
+    // trembling when apoptotic
+    const dx = this.apoptotic ? Math.sin(t*12)*2.5 : 0;
+
+    ctx.save();
+    ctx.translate(this.x+dx, this.y);
+
+    // cytoplasm
+    const cg = ctx.createRadialGradient(0,0,0,0,0,this.r);
+    if(this.apoptotic){
+      const a = 0.35 + (1-this.viability/100)*0.4;
+      cg.addColorStop(0,`rgba(200,50,30,${a*0.4})`);
+      cg.addColorStop(1,`rgba(180,30,10,${a})`);
+    } else {
+      cg.addColorStop(0,"rgba(255,200,180,0.25)");
+      cg.addColorStop(1,"rgba(255,99,71,0.55)");
+    }
+    ctx.beginPath(); ctx.arc(0,0,this.r,0,Math.PI*2);
+    ctx.fillStyle=cg; ctx.fill();
+    ctx.strokeStyle=this.apoptotic?"#cc2200":"#FF6347";
+    ctx.lineWidth=2.5; ctx.stroke();
+
+    // membrane receptors
+    this.receptors.forEach(rec=>{
+      if(rec.gone) return;
+      const rx = Math.cos(rec.angle)*this.r;
+      const ry = Math.sin(rec.angle)*this.r;
+      ctx.beginPath();
+      ctx.arc(rx,ry,3.5,0,Math.PI*2);
+      ctx.fillStyle = rec.bound ? "#FFD700" : "#8B4513";
+      ctx.fill();
+    });
+
+    // endosomes
+    this.endosomes.forEach(e=>{
+      const relX = e.x - this.x;
+      const relY = e.y - this.y;
+      const t_val = (7.4 - e.pH)/2.4;
+      ctx.beginPath();
+      ctx.arc(relX,relY,e.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(147,112,219,${0.3+t_val*0.5})`;
+      ctx.fill();
+      ctx.strokeStyle=`rgba(200,100,255,${0.4+t_val*0.4})`; ctx.lineWidth=1.5;
+      ctx.stroke();
+
+      if(showLabels && e.pH < 7.0){
+        ctx.fillStyle="white"; ctx.font="bold 9px sans-serif"; ctx.textAlign="center";
+        ctx.fillText(`pH ${e.pH.toFixed(1)}`, relX, relY+3);
+      }
+
+      // released dox
+      e.dox.forEach(d=>{
+        const px = relX + Math.cos(d.a)*d.r;
+        const py = relY + Math.sin(d.a)*d.r;
+        ctx.beginPath(); ctx.arc(px,py,2.5,0,Math.PI*2);
+        ctx.fillStyle="#FF1493"; ctx.fill();
+      });
+    });
+
+    // nucleus
+    const ng = ctx.createRadialGradient(0,0,0,0,0,this.nr);
+    ng.addColorStop(0,"#6ab0ff");
+    ng.addColorStop(1,"#1a4a8a");
+    ctx.beginPath(); ctx.arc(0,0,this.nr,0,Math.PI*2);
+    ctx.fillStyle=ng; ctx.fill();
+    ctx.strokeStyle="#3399ff"; ctx.lineWidth=2; ctx.stroke();
+
+    // DNA damage lines
+    if(this.apoptotic){
+      ctx.strokeStyle=`rgba(255,0,50,${0.4+(1-this.viability/100)*0.6})`;
+      ctx.lineWidth=1.5;
+      for(let i=0;i<6;i++){
+        const a = (Math.PI*2/6)*i + t*0.8;
+        ctx.beginPath();
+        ctx.moveTo(0,0);
+        ctx.lineTo(Math.cos(a)*this.nr, Math.sin(a)*this.nr);
+        ctx.stroke();
+      }
+    }
+
+    // drug fluorescence in nucleus
+    if(this.drugInNucleus>5){
+      const da = this.drugInNucleus/100;
+      ctx.beginPath(); ctx.arc(0,0,this.nr*0.7,0,Math.PI*2);
+      ctx.fillStyle=`rgba(255,20,147,${da*0.35})`; ctx.fill();
+    }
+
+    // labels
+    if(showLabels){
+      ctx.fillStyle="#ddd"; ctx.font="bold 12px sans-serif"; ctx.textAlign="center";
+      ctx.fillText("A549",0, this.r+16);
+      ctx.fillStyle="#aaa"; ctx.font="10px sans-serif";
+      ctx.fillText(`Viability: ${Math.round(this.viability)}%`,0, this.r+30);
+    }
+
+    ctx.restore();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BACKGROUND — blood vessel / tumour boundary
+// ═══════════════════════════════════════════════════════════════════════════
+
+function drawBackground(){
+  const w=W(), h=H();
+  const boundary = h*0.42;
+
+  // blood region
+  const bg1 = ctx.createLinearGradient(0,0,0,boundary);
+  bg1.addColorStop(0,"#1a0505");
+  bg1.addColorStop(1,"#2d0a0a");
+  ctx.fillStyle=bg1;
+  ctx.fillRect(0,0,w,boundary);
+
+  // tumour region
+  const bg2 = ctx.createLinearGradient(0,boundary,0,h);
+  bg2.addColorStop(0,"#1a100a");
+  bg2.addColorStop(1,"#0d1a0d");
+  ctx.fillStyle=bg2;
+  ctx.fillRect(0,boundary,w,h-boundary);
+
+  // EPR fenestration boundary
+  ctx.setLineDash([8,6]);
+  ctx.strokeStyle="rgba(255,100,100,0.4)";
+  ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(0,boundary); ctx.lineTo(w,boundary);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // fenestration gaps
+  for(let x=40; x<w-40; x+=80){
+    ctx.strokeStyle="rgba(255,120,80,0.6)";
+    ctx.lineWidth=3;
+    ctx.beginPath();
+    ctx.moveTo(x, boundary-8);
+    ctx.lineTo(x+22, boundary+8);
+    ctx.stroke();
+  }
+
+  if(showLabels){
+    ctx.fillStyle="rgba(220,100,100,0.7)";
+    ctx.font="bold 13px sans-serif";
+    ctx.fillText("Blood Circulation",14,22);
+    ctx.fillStyle="rgba(100,220,100,0.7)";
+    ctx.fillText("Tumour Microenvironment",14,boundary+22);
+    ctx.fillStyle="rgba(255,140,80,0.5)";
+    ctx.font="11px sans-serif";
+    ctx.textAlign="center";
+    ctx.fillText("EPR Fenestrations  (100–600 nm)",w/2,boundary-6);
+    ctx.textAlign="left";
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// METRICS UPDATE
+// ═══════════════════════════════════════════════════════════════════════════
+
+function updateMetrics(){
+  const inTumour = particles.filter(p=>p.state==="bound"||p.state==="internalized").length;
+  const minPH    = cells.length
+    ? Math.min(...cells.flatMap(c=>c.endosomes.map(e=>e.pH).concat([7.4])))
+    : 7.4;
+  const avgDrug  = cells.length
+    ? cells.reduce((s,c)=>s+c.drugInNucleus,0)/cells.length
+    : 0;
+  const avgViab  = cells.length
+    ? cells.reduce((s,c)=>s+c.viability,0)/cells.length
+    : 100;
+
+  document.getElementById("mNP").textContent   = inTumour;
+  document.getElementById("mPH").textContent   = minPH.toFixed(1);
+  document.getElementById("mDrug").textContent  = `${Math.round(avgDrug)}%`;
+  document.getElementById("mViab").textContent  = `${Math.round(avgViab)}%`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PHASE LOGIC
+// ═══════════════════════════════════════════════════════════════════════════
+
+function evaluatePhase(){
+  const inTumour   = particles.filter(p=>p.state!=="circulating").length;
+  const anyBound   = particles.some(p=>p.state==="bound");
+  const anyInternal= particles.some(p=>p.state==="internalized");
+  const anyEndosome= cells.some(c=>c.endosomes.length>0);
+  const anyAcid    = cells.some(c=>c.endosomes.some(e=>e.pH<6.5));
+  const anyReleased= cells.some(c=>c.endosomes.some(e=>e.released));
+  const anyDrug    = cells.some(c=>c.drugInNucleus>5);
+  const anyApo     = cells.some(c=>c.apoptotic);
+
+  if(anyApo)          phase = 7;
+  else if(anyDrug)    phase = 6;
+  else if(anyReleased)phase = 5;
+  else if(anyAcid)    phase = 4;
+  else if(anyInternal)phase = 3;
+  else if(anyBound)   phase = 2;
+  else if(inTumour>0) phase = 1;
+  else                phase = 0;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SIMULATION INIT
+// ═══════════════════════════════════════════════════════════════════════════
+
+function initSim(){
+  particles = [];
+  cells     = [];
+  frame     = 0;
+  phase     = 0;
+
+  for(let i=0;i<18;i++) particles.push(new Particle());
+
+  const cx = W()/2, cy = H()*0.72;
+  cells.push(new CancerCell(cx,      cy,      110));
+  cells.push(new CancerCell(cx-260,  cy+25,   82));
+  cells.push(new CancerCell(cx+265,  cy+20,   90));
+
+  updatePhaseUI();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MAIN LOOP
+// ═══════════════════════════════════════════════════════════════════════════
+
+function loop(){
+  if(!running) return;
+  frame++;
+
+  // clear
+  ctx.clearRect(0,0,W(),H());
+  drawBackground();
+
+  // phase-driven particle migration
+  if(frame % Math.round(90/speed) === 0){
+    const waiting = particles.filter(p=>p.state==="circulating");
+    if(waiting.length){
+      const np   = waiting[Math.floor(Math.random()*waiting.length)];
+      const cell = cells[Math.floor(Math.random()*cells.length)];
+      const rx   = cell.x + (Math.random()-0.5)*cell.r*0.6;
+      const ry   = cell.y + (Math.random()-0.5)*cell.r*0.6;
+      np.state   = "targeting";
+      np.tx      = rx;
+      np.ty      = ry;
+      np.cell    = cell;
+    }
+  }
+
+  // bind → internalize → endosome
+  particles.forEach(p=>{
+    p.update();
+    if(p.state==="bound" && p.cell){
+      if(Math.random() < 0.004*speed){
+        p.cell.bindReceptor();
+        p.cell.addEndosome();
+        p.state = "internalized";
+        p.x = p.cell.x + (Math.random()-0.5)*40;
+        p.y = p.cell.y + (Math.random()-0.5)*40;
+      }
+    }
+  });
+
+  cells.forEach(c=>{ c.update(); c.draw(); });
+
+  // draw non-internalized particles on top
+  particles.forEach(p=>{ if(p.state !== "internalized") p.draw(); });
+
+  evaluatePhase();
+  updatePhaseUI();
+  updateMetrics();
+
+  requestAnimationFrame(loop);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CONTROLS
+// ═══════════════════════════════════════════════════════════════════════════
+
+function startSim(){
+  if(!running){
+    if(frame===0) initSim();
+    running = true;
+    loop();
+  }
+}
+function pauseSim(){ running = false; }
+function resetSim(){ running=false; initSim();
+  ctx.clearRect(0,0,W(),H()); drawBackground(); cells.forEach(c=>c.draw());
+  particles.forEach(p=>p.draw());
+}
+function setSpeed(s){ speed=s; }
+function toggleLabels(){ showLabels=!showLabels; }
+
+// initial render
+window.addEventListener("load",()=>{ initSim(); drawBackground();
+  cells.forEach(c=>c.draw()); particles.forEach(p=>p.draw()); });
+</script>
+</body>
+</html>
