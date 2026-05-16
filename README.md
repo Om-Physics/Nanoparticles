@@ -5,7 +5,6 @@
 **Author:** Om Jha, St. Xavier's College, Kathmandu, Nepal
 **Contact:** om.physics7@gmail.com
 **ORCID:** 0009-0006-4040-9902
-**Version:** 1.0.0
 **Year:** 2025
 
 ---
@@ -251,4 +250,4 @@ This work builds on the foundational contributions of Matsumura and Maeda in des
 
 ---
 
-*Version 1.0.0 — February 2026*
+*Version 1.0.0 — February 2025*
