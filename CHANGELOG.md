@@ -6,8 +6,6 @@ All notable changes to this project are documented in this file following semant
 
 ---
 
-## v1.0.0 — February 2026 (Initial Public Release)
-
 ### Added
 
 **Six Computational Figures.** All six publication figures were generated, each addressing a specific reviewer concern raised during manuscript evaluation. Figure 1 provides ICP-MS-equivalent organ biodistribution data across five time points for passive and active targeting formulations, modelled using two-compartment pharmacokinetics and EPR accumulation differential equations. Figure 2 presents an eight-component safety assessment panel covering liver function, kidney function, haematology, inflammatory markers, histopathological scoring, body weight monitoring, and a composite toxicity score. Figure 3 validates EGFR targeting specificity through isotype antibody controls, dose-dependent receptor blocking competition assays, endocytosis pathway inhibitor studies, time-dependent uptake kinetics, EGFR expression correlation across cell lines, and pathway mechanism distribution. Figure 4 covers drug loading efficiency optimisation, antibody conjugation quantification, UV-visible spectral shift confirmation, serum stability profiling, BCA protein assay calibration, and fluorescence quenching analysis. Figure 5 documents laser parameter optimisation, heating and cooling cycle dynamics, wavelength-dependent photothermal conversion efficiency, chemo-PTT combination synergy, CEM43 thermal dose mapping, and tissue penetration depth comparison across five laser wavelengths. Figure 6 presents blood concentration-time curves, area under the curve comparisons with fold-improvement annotations, size-dependent clearance route analysis, and a normalised pharmacokinetic parameter summary.
