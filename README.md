@@ -3,11 +3,10 @@
 **A Comprehensive Computational Framework for Pharmacokinetic Modelling, Biodistribution Analysis, and Mechanistic Simulation**
 
 **Author:** Om Jha, St. Xavier's College, Kathmandu, Nepal
-**Supervisor:** Dr. Drabindra Pandit, St. Xavier's College, Kathmandu, Nepal
 **Contact:** om.physics7@gmail.com
 **ORCID:** 0009-0006-4040-9902
 **Version:** 1.0.0
-**Year:** 2026
+**Year:** 2025
 
 ---
 
@@ -244,7 +243,6 @@ This project is distributed under the MIT License. You are free to use, modify, 
 ## Contact and Acknowledgments
 
 **Om Jha** — om.physics7@gmail.com — ORCID: 0009-0006-4040-9902
-**Dr. Drabindra Pandit** — drabindra@sxc.edu.np — ORCID: 0000-0002-1955-8499
 St. Xavier's College, Kathmandu, Nepal
 
 Bug reports and feature requests: github.com/Om-Physics/Nanoparticles/issues
