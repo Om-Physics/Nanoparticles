@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 Om Jha
+Copyright (c) 2026 Om Jha, St. Xavier's College Kathmandu
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +19,34 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+ACADEMIC USE NOTICE
+
+This software is primarily intended for academic research and educational purposes. 
+Users who publish research utilizing this computational framework should provide 
+appropriate attribution in their methods sections, clearly indicating that analyses 
+represent computational projections based on established pharmacokinetic models 
+with parameters derived from literature sources.
+
+DISCLAIMER
+
+The computational models and simulations provided in this software generate 
+theoretical predictions and should not be interpreted as experimental measurements. 
+While parameter values are derived from published literature, actual biodistribution, 
+toxicity, and efficacy outcomes depend on specific experimental conditions, 
+formulation details, and biological systems. Users assume full responsibility for 
+proper interpretation and application of computational results.
+
+Presentation of computational projections as experimental data without proper 
+disclosure constitutes scientific misconduct and violates ethical research standards. 
+All results generated using this framework must be clearly labeled as computational 
+or theoretical in nature, with appropriate citations to source literature for model 
+parameters.
+
+COMMERCIAL USE
+
+Organizations interested in commercial applications of this software should contact 
+the authors regarding licensing arrangements and collaborative opportunities. 
+Commercial use includes but is not limited to pharmaceutical development, diagnostic 
+applications, and medical device design incorporating the computational methodologies 
+provided herein.
